@@ -2,6 +2,10 @@ package calculator;
 import javax.swing.*; //importing the java swing api
 import java.awt.*; //importing the awt api
 import java.awt.event.*; //importing event api from awt
+import javax.script.ScriptEngine;
+import javax.script.ScriptEngineManager;
+import javax.script.ScriptException;
+
 
 /**
  *
@@ -10,12 +14,13 @@ import java.awt.event.*; //importing event api from awt
 public class Calculator extends JFrame implements ActionListener{
     
     JTextField display = new JTextField();
+    
     //constructor that builds the Calculator gui
     public Calculator(){
         //creating the initiale frame and creating the default close operation
         JFrame frame = new JFrame("Calculator");
         frame.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
-        
+        display.setEditable(false);
         //initializing a text field that will be the display for the calculator
         //JTextField display = new JTextField(20);
         
@@ -30,15 +35,15 @@ public class Calculator extends JFrame implements ActionListener{
         JButton rightParButton = new JButton(")");
         rightParButton.setActionCommand("rightParButton");
         rightParButton.addActionListener(this);
-        JButton squaredButton = new JButton("x^2");
-        squaredButton.setActionCommand("squaredButton");
-        squaredButton.addActionListener(this);
+        JButton powerButton = new JButton("x^x");
+        powerButton.setActionCommand("powerButton");
+        powerButton.addActionListener(this);
         JButton clearEButton = new JButton("CE");
         clearEButton.setActionCommand("clearEButton");
         clearEButton.addActionListener(this);
-        JButton clearButton = new JButton("C");
-        clearButton.setActionCommand("clearButton");
-        clearButton.addActionListener(this);
+        JButton recipButton = new JButton("1/x");
+        recipButton.setActionCommand("recipButton");
+        recipButton.addActionListener(this);
         JButton backspaceButton = new JButton("<--");
         backspaceButton.setActionCommand("backspaceButton");
         backspaceButton.addActionListener(this);
@@ -59,7 +64,7 @@ public class Calculator extends JFrame implements ActionListener{
         mulButton.addActionListener(this);
         JButton fourButton = new JButton("4");
         fourButton.setActionCommand("fourButton");
-        leftParButton.addActionListener(this);
+        fourButton.addActionListener(this);
         JButton fiveButton = new JButton("5");
         fiveButton.setActionCommand("fiveButton");
         fiveButton.addActionListener(this);
@@ -104,10 +109,10 @@ public class Calculator extends JFrame implements ActionListener{
         //adding all of the buttons to the button panel
         buttonPanel.add(percentButton);
         buttonPanel.add(leftParButton);
-        buttonPanel.add(squaredButton);
         buttonPanel.add(rightParButton);
+        buttonPanel.add(powerButton);
         buttonPanel.add(clearEButton);
-        buttonPanel.add(clearButton);
+        buttonPanel.add(recipButton);
         buttonPanel.add(backspaceButton);
         buttonPanel.add(divButton);
         buttonPanel.add(sevenButton);
@@ -182,11 +187,53 @@ public class Calculator extends JFrame implements ActionListener{
             case "clearEButton":
                 display.setText("");
                 break;
+            case "mulButton":
+                display.setText(display.getText() + "*");
+                break;
+            case "addButton":
+                display.setText(display.getText() + "+");
+                break;
+            case "subButton":
+                display.setText(display.getText() + "-");
+                break;
+            case "divButton":
+                display.setText(display.getText() + "/");
+                break;
+            case "powerButton":
+                display.setText(display.getText() + "^");
+                break;
+            case "calculateButton":
+                
+                String expression = display.getText();
+                String dividZero = "/0";
+                String power = "^";
+                if(expression.contains(dividZero)){
+                    display.setText("Error: Cannot divide by zero");
+                } else if (expression.contains(power)){
+                    String powExpression = "Math.pow(";
+                    powExpression = powExpression + expression.replace("^", ", ") + ")";
+                    display.setText(calculate(powExpression));
+                } else { 
+                    display.setText(calculate(expression));
+                }
+                break;
             default:
                 break;
         }
     }
     
+    public String calculate(String expression){
+        
+        ScriptEngine engine = new ScriptEngineManager().getEngineByExtension("js");
+        try {
+            Object result = engine.eval(expression);
+            return result.toString();
+        } catch (ScriptException ae) {
+            ae.printStackTrace();
+        }
+        return "";
+    }
+
     /**
      * @param args the command line arguments
      */
