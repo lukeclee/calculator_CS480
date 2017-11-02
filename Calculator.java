@@ -1,4 +1,5 @@
 package calculator;
+
 import javax.swing.*; //importing the java swing api
 import java.awt.*; //importing the awt api
 import java.awt.event.*; //importing event api from awt
@@ -6,27 +7,26 @@ import javax.script.ScriptEngine;
 import javax.script.ScriptEngineManager;
 import javax.script.ScriptException;
 
-
 /**
  *
  * @author Luke Lee
  */
-public class Calculator extends JFrame implements ActionListener{
-    
+public class Calculator extends JFrame implements ActionListener {
+
     JTextField display = new JTextField();
-    
+
     //constructor that builds the Calculator gui
-    public Calculator(){
+    public Calculator() {
         //creating the initiale frame and creating the default close operation
         JFrame frame = new JFrame("Calculator");
         frame.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
         display.setEditable(false);
         //initializing a text field that will be the display for the calculator
         //JTextField display = new JTextField(20);
-        
+
         //creating all of the buttons for the calculator
         //as well as 
-        JButton percentButton = new JButton("%");
+        JButton percentButton = new JButton("");
         percentButton.setActionCommand("percentButton");
         percentButton.addActionListener(this);
         JButton leftParButton = new JButton("(");
@@ -38,9 +38,9 @@ public class Calculator extends JFrame implements ActionListener{
         JButton powerButton = new JButton("x^x");
         powerButton.setActionCommand("powerButton");
         powerButton.addActionListener(this);
-        JButton clearEButton = new JButton("CE");
-        clearEButton.setActionCommand("clearEButton");
-        clearEButton.addActionListener(this);
+        JButton clearButton = new JButton("C");
+        clearButton.setActionCommand("clearButton");
+        clearButton.addActionListener(this);
         JButton recipButton = new JButton("1/x");
         recipButton.setActionCommand("recipButton");
         recipButton.addActionListener(this);
@@ -98,20 +98,20 @@ public class Calculator extends JFrame implements ActionListener{
         JButton calculateButton = new JButton("=");
         calculateButton.setActionCommand("calculateButton");
         calculateButton.addActionListener(this);
-        
+
         //creating the main panel for the gui as well as the button panel
         //setting the layout of the button panel
         JPanel mainPanel = new JPanel();
         mainPanel.setLayout(new GridLayout(2, 1));
         JPanel buttonPanel = new JPanel();
         buttonPanel.setLayout(new GridLayout(6, 4));
-        
+
         //adding all of the buttons to the button panel
         buttonPanel.add(percentButton);
         buttonPanel.add(leftParButton);
         buttonPanel.add(rightParButton);
         buttonPanel.add(powerButton);
-        buttonPanel.add(clearEButton);
+        buttonPanel.add(clearButton);
         buttonPanel.add(recipButton);
         buttonPanel.add(backspaceButton);
         buttonPanel.add(divButton);
@@ -131,19 +131,23 @@ public class Calculator extends JFrame implements ActionListener{
         buttonPanel.add(zeroButton);
         buttonPanel.add(decimalButton);
         buttonPanel.add(calculateButton);
-        
+
         //adding the display and buttonPanel to the main panel
         mainPanel.add(display, BorderLayout.PAGE_START);
         mainPanel.add(buttonPanel);
-        
+
         //adding the mainPanel to the frame and setting it to visible
         frame.add(mainPanel, BorderLayout.CENTER);
         frame.pack();
         frame.setVisible(true);
-        
+        frame.setSize(350, 450);
     }
-    
-    public void actionPerformed(ActionEvent e){
+
+    //actionPerformed class that takes the event from a button click
+    public void actionPerformed(ActionEvent e) {
+        //this switch statement gets the actioncommand name from the click
+        //event and then uses a switch statement and depending on what the name
+        //is does the specified action
         switch (e.getActionCommand()) {
             case "nineButton":
                 display.setText(display.getText() + "9");
@@ -184,7 +188,7 @@ public class Calculator extends JFrame implements ActionListener{
             case "decimalButton":
                 display.setText(display.getText() + ".");
                 break;
-            case "clearEButton":
+            case "clearButton":
                 display.setText("");
                 break;
             case "mulButton":
@@ -202,44 +206,81 @@ public class Calculator extends JFrame implements ActionListener{
             case "powerButton":
                 display.setText(display.getText() + "^");
                 break;
-            case "calculateButton":
-                
-                String expression = display.getText();
-                String dividZero = "/0";
-                String power = "^";
-                if(expression.contains(dividZero)){
-                    display.setText("Error: Cannot divide by zero");
-                } else if (expression.contains(power)){
-                    String powExpression = "Math.pow(";
-                    powExpression = powExpression + expression.replace("^", ", ") + ")";
-                    display.setText(calculate(powExpression));
-                } else { 
-                    display.setText(calculate(expression));
+            case "backspaceButton":
+                String displayString = display.getText();
+                if (!displayString.isEmpty()) {
+                    display.setText(displayString.substring(0, displayString.length() - 1));
                 }
+                break;
+            case "recipButton":
+                display.setText("1/" + display.getText());
+                break;
+            case "calculateButton":
+                calculateButton();
                 break;
             default:
                 break;
         }
     }
-    
-    public String calculate(String expression){
-        
+
+    //calculateButton that gets called whenever the "=" button is pressed which
+    //handles all of the errors and syntax and then calculates the expression
+    public void calculateButton() {
+        String expression = display.getText();
+        char input[] = expression.toCharArray();
+        int parentheses = 0;
+        for (int i = 0; i < input.length; i++) {
+            if (input[i] == '(') {
+                parentheses++;
+            } else if (input[i] == ')') {
+                parentheses--;
+            }
+        }
+        int doubles = 0;
+        String doubleOps[] = new String[]{"**", "//", "^^", "--", "++", "..", "*/", "/*"};
+        for (int i = 0; i < doubleOps.length; i++) {
+            if (expression.contains(doubleOps[i])) {
+                doubles = 1;
+            }
+        }
+        String dividZero = "/0";
+        String power = "^";
+        if (expression.contains(dividZero)) {
+            display.setText("Error: Cannot divide by zero");
+        } else if (parentheses != 0) {
+            display.setText("Error: Uneven amount of parentheses");
+        } else if (doubles == 1) {
+            display.setText("Error: Something is wrong with the syntax");
+        } else if (expression.contains(power)) {
+            String powExpression = "Math.pow(";
+            powExpression = powExpression + expression.replace("^", ", ") + ")";
+            display.setText(calculate(powExpression));
+        } else {
+            display.setText(calculate(expression));
+        }
+    }
+
+    //calculate method that takes a string as input and returns a string
+    //used a scriptengine to use the eval method from javascript to evaluate
+    //the expression that is input by the user
+    public String calculate(String expression) {
+
         ScriptEngine engine = new ScriptEngineManager().getEngineByExtension("js");
         try {
             Object result = engine.eval(expression);
             return result.toString();
-        } catch (ScriptException ae) {
-            ae.printStackTrace();
+        } catch (ScriptException er) {
+            return "Error: That is an invalid expression";
         }
-        return "";
+
     }
 
     /**
      * @param args the command line arguments
      */
     public static void main(String[] args) {
-        //creating a run method for the GUI
+        //creates a new calculator object which builds the GUI
         Calculator calculator = new Calculator();
     }
-    
+
 }
