@@ -268,7 +268,11 @@ public class Calculator extends JFrame implements ActionListener {
         ScriptEngine engine = new ScriptEngineManager().getEngineByExtension("js");
         try {
             Object result = engine.eval(expression);
-            return result.toString();
+            if(result.toString().equals("Infinity")){
+                return("Error: The numbers you have entered are too large");
+            } else {
+                return result.toString();
+            }
         } catch (ScriptException er) {
             return "Error: That is an invalid expression";
         }
