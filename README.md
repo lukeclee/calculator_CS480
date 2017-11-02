@@ -15,3 +15,5 @@ If I had more time I would implement my own evaluation function.
 
 Also the only error handling that I did not take care of to the fullest extent was if an operator doesn't 
 have two operands associated with it. 
+
+Added error handling for numbers that are too large
